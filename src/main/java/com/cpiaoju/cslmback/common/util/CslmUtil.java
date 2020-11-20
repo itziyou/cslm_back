@@ -54,7 +54,6 @@ public class CslmUtil {
         String token = (String) SecurityUtils.getSubject().getPrincipal();
         String username = JWTUtil.getUsername(token);
         UserService userService = SpringContextUtil.getBean(UserService.class);
-
         return userService.findByName(username);
     }
 

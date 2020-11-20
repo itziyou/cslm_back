@@ -38,3 +38,6 @@ spring:
 logging:
   level:
     com.cpiaoju.cslmback.common.handler: debug
+
+knife4j:
+  production: false

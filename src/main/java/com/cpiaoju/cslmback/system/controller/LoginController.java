@@ -15,6 +15,10 @@ import com.cpiaoju.cslmback.system.entity.User;
 import com.cpiaoju.cslmback.system.service.MenuService;
 import com.cpiaoju.cslmback.system.service.RoleService;
 import com.cpiaoju.cslmback.system.service.UserService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -34,6 +38,7 @@ import java.util.Set;
 /**
  * @author ziyou
  */
+@Api(tags = "登录模块")
 @Slf4j
 @Validated
 @RestController
@@ -47,6 +52,11 @@ public class LoginController {
     private final ShiroProperties shiroProperties;
 
 
+    @ApiOperation(value = "登录接口")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "username", value = "用户名", required = true),
+            @ApiImplicitParam(name = "password", value = "密码", required = true)
+    })
     @PostMapping("/login")
     @Limit(key = "login", period = 60, count = 20, name = "登录接口", prefix = "limit")
     public CslmResponse login(

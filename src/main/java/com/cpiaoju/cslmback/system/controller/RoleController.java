@@ -1,6 +1,5 @@
 package com.cpiaoju.cslmback.system.controller;
 
-import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.cpiaoju.cslmback.common.controller.BaseController;
 import com.cpiaoju.cslmback.common.entity.CslmResponse;
 import com.cpiaoju.cslmback.common.entity.QueryRequest;
@@ -8,7 +7,6 @@ import com.cpiaoju.cslmback.system.entity.Role;
 import com.cpiaoju.cslmback.system.entity.RoleMenu;
 import com.cpiaoju.cslmback.system.service.RoleMenuServie;
 import com.cpiaoju.cslmback.system.service.RoleService;
-import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.util.List;
