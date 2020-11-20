@@ -5,13 +5,13 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.cpiaoju.cslmback.common.entity.QueryRequest;
 import com.cpiaoju.cslmback.system.entity.Role;
 
-import java.util.List;
+import java.util.Set;
 
 public interface RoleService extends IService<Role> {
 
     IPage<Role> findRoles(Role role, QueryRequest request);
 
-    List<Role> findUserRole(String userName);
+    Set<String> findUserRole(String userName);
 
     Role findByName(String roleName);
 

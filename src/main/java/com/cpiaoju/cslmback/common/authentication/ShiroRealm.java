@@ -5,8 +5,6 @@ import com.cpiaoju.cslmback.common.authentication.jwt.JWTToken;
 import com.cpiaoju.cslmback.common.authentication.jwt.JWTUtil;
 import com.cpiaoju.cslmback.common.entity.CslmConstant;
 import com.cpiaoju.cslmback.common.service.RedisService;
-import com.cpiaoju.cslmback.system.entity.Menu;
-import com.cpiaoju.cslmback.system.entity.Role;
 import com.cpiaoju.cslmback.system.entity.User;
 import com.cpiaoju.cslmback.system.service.MenuService;
 import com.cpiaoju.cslmback.system.service.RoleService;
@@ -20,9 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 
 /**
@@ -80,13 +76,11 @@ public class ShiroRealm extends AuthorizingRealm {
         SimpleAuthorizationInfo simpleAuthorizationInfo = new SimpleAuthorizationInfo();
 
         // 获取用户角色集
-        List<Role> roleList = this.roleService.findUserRole(userName);
-        Set<String> roleSet = roleList.stream().map(Role::getRoleName).collect(Collectors.toSet());
+        Set<String> roleSet = this.roleService.findUserRole(userName);
         simpleAuthorizationInfo.setRoles(roleSet);
 
         // 获取用户权限集
-        List<Menu> permissionList = this.menuService.findUserPermissions(userName);
-        Set<String> permissionSet = permissionList.stream().map(Menu::getPerms).collect(Collectors.toSet());
+        Set<String> permissionSet = this.menuService.findUserPermissions(userName);
         simpleAuthorizationInfo.setStringPermissions(permissionSet);
         return simpleAuthorizationInfo;
     }

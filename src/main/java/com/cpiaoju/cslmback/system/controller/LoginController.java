@@ -12,11 +12,11 @@ import com.cpiaoju.cslmback.common.properties.ShiroProperties;
 import com.cpiaoju.cslmback.common.service.RedisService;
 import com.cpiaoju.cslmback.common.util.Md5Util;
 import com.cpiaoju.cslmback.system.entity.User;
-import com.cpiaoju.cslmback.system.manager.UserManager;
+import com.cpiaoju.cslmback.system.service.MenuService;
+import com.cpiaoju.cslmback.system.service.RoleService;
 import com.cpiaoju.cslmback.system.service.UserService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -32,34 +31,32 @@ import java.util.Map;
 import java.util.Set;
 
 
+/**
+ * @author ziyou
+ */
 @Slf4j
 @Validated
 @RestController
+@RequiredArgsConstructor
 public class LoginController {
 
-    @Autowired
-    private RedisService redisService;
-    @Autowired
-    private UserManager userManager;
-    @Autowired
-    private UserService userService;
+    private final RedisService redisService;
+    private final UserService userService;
+    private final RoleService roleService;
+    private final MenuService menuService;
+    private final ShiroProperties shiroProperties;
 
-    @Autowired
-    private ShiroProperties shiroProperties;
-    @Autowired
-    private ObjectMapper mapper;
 
     @PostMapping("/login")
     @Limit(key = "login", period = 60, count = 20, name = "登录接口", prefix = "limit")
     public CslmResponse login(
             @NotBlank(message = "{required}") String username,
-            @NotBlank(message = "{required}") String password, HttpServletRequest request) throws Exception {
+            @NotBlank(message = "{required}") String password) {
 
         password = Md5Util.encrypt(username, password);
 
-
         final String errorMessage = "用户名或密码错误";
-        User user = this.userManager.getUser(username);
+        User user = this.userService.findByName(username);
 
         if (user == null || password == null) {
             throw new CslmException(errorMessage);
@@ -87,48 +84,6 @@ public class LoginController {
         return new CslmResponse().code(HttpStatus.OK).message("认证成功").data(userInfo);
     }
 
-/*    @GetMapping("index/{username}")
-    public CslmResponse index(@NotBlank(message = "{required}") @PathVariable String username) {
-        Map<String, Object> data = new HashMap<>();
-        // 获取系统访问记录
-        Long totalVisitCount = loginLogMapper.findTotalVisitCount();
-        data.put("totalVisitCount", totalVisitCount);
-        Long todayVisitCount = loginLogMapper.findTodayVisitCount();
-        data.put("todayVisitCount", todayVisitCount);
-        Long todayIp = loginLogMapper.findTodayIp();
-        data.put("todayIp", todayIp);
-        // 获取近期系统访问记录
-        List<Map<String, Object>> lastSevenVisitCount = loginLogMapper.findLastSevenDaysVisitCount(null);
-        data.put("lastSevenVisitCount", lastSevenVisitCount);
-        User param = new User();
-        param.setUsername(username);
-        List<Map<String, Object>> lastSevenUserVisitCount = loginLogMapper.findLastSevenDaysVisitCount(param);
-        data.put("lastSevenUserVisitCount", lastSevenUserVisitCount);
-        return new CslmResponse().data(data);
-    }*/
-
-
-/*    @DeleteMapping("kickout/{id}")
-    @RequiresPermissions("user:kickout")
-    public void kickout(@NotBlank(message = "{required}") @PathVariable String id) throws Exception {
-        String now = DateUtil.formatFullTime(LocalDateTime.now());
-        Set<String> userOnlineStringSet = redisService.zrangeByScore(FebsConstant.ACTIVE_USERS_ZSET_PREFIX, now, "+inf");
-        ActiveUser kickoutUser = null;
-        String kickoutUserString = "";
-        for (String userOnlineString : userOnlineStringSet) {
-            ActiveUser activeUser = mapper.readValue(userOnlineString, ActiveUser.class);
-            if (StringUtils.equals(activeUser.getId(), id)) {
-                kickoutUser = activeUser;
-                kickoutUserString = userOnlineString;
-            }
-        }
-        if (kickoutUser != null && StringUtils.isNotBlank(kickoutUserString)) {
-            // 删除 zset中的记录
-            redisService.zrem(FebsConstant.ACTIVE_USERS_ZSET_PREFIX, kickoutUserString);
-            // 删除对应的 token缓存
-            redisService.del(FebsConstant.TOKEN_CACHE_PREFIX + kickoutUser.getToken() + "." + kickoutUser.getIp());
-        }
-    }*/
 
     @GetMapping("logout/{userId}")
     public CslmResponse logout(@NotBlank(message = "{required}") @PathVariable Long userId) throws Exception {
@@ -150,13 +105,6 @@ public class LoginController {
         this.userService.regist(username, password);
     }
 
-    private void saveTokenToRedis(Long userId, JWTToken token, HttpServletRequest request) {
-
-        // redis 中存储这个 token，key = 前缀 + userId
-        this.redisService.set(CslmConstant.TOKEN_CACHE_PREFIX + userId, token.getToken(), shiroProperties.getJwtTimeOut());
-
-    }
-
     /**
      * 生成前端需要的用户信息，包括：
      * 1. token
@@ -175,10 +123,10 @@ public class LoginController {
         userInfo.put("token", token.getToken());
         userInfo.put("exipreTime", token.getExipreAt());
 
-        Set<String> roles = this.userManager.getUserRoles(username);
+        Set<String> roles = this.roleService.findUserRole(username);
         userInfo.put("roles", roles);
 
-        Set<String> permissions = this.userManager.getUserPermissions(username);
+        Set<String> permissions = this.menuService.findUserPermissions(username);
         userInfo.put("permissions", permissions);
 
         user.setPassword("it's a secret");

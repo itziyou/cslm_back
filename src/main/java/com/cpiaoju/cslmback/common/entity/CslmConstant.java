@@ -91,4 +91,19 @@ public interface CslmConstant {
      * 菜单
      */
     String TYPE_MENU = "0";
+
+    /**
+     * 用户详情
+     */
+    String USET_DETAIL = "user:detail:";
+
+    /**
+     * 角色
+     */
+    String USET_ROLE = "user:role:";
+
+    /**
+     * 权限
+     */
+    String USET_PERM = "user:perm:";
 }

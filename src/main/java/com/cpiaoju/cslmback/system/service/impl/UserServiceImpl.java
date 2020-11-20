@@ -1,12 +1,14 @@
 package com.cpiaoju.cslmback.system.service.impl;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.cpiaoju.cslmback.common.entity.CslmConstant;
 import com.cpiaoju.cslmback.common.entity.QueryRequest;
-import com.cpiaoju.cslmback.common.service.CacheService;
+import com.cpiaoju.cslmback.common.service.RedisService;
 import com.cpiaoju.cslmback.common.util.Md5Util;
 import com.cpiaoju.cslmback.system.entity.User;
 import com.cpiaoju.cslmback.system.entity.UserRole;
@@ -32,13 +34,26 @@ import java.util.List;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true, rollbackFor = Exception.class)
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
-    private final CacheService cacheService;
     private final UserRoleService userRoleService;
+    private final RedisService redisService;
 
 
     @Override
     public User findByName(String username) {
-        return baseMapper.findDetail(username);
+        Object userRedis = redisService.get(CslmConstant.USET_DETAIL + username);
+        if (userRedis == null) {
+            User user = baseMapper.findDetail(username);
+            if (user == null) {
+                return null;
+            }
+            redisService.set(CslmConstant.USET_DETAIL + username, JSONUtil.toJsonStr(user));
+            return user;
+        } else {
+            String userJsonStr = JSONUtil.toJsonStr(userRedis);
+            User user = JSONUtil.toBean(userJsonStr, User.class);
+            return user;
+        }
+
     }
 
 
@@ -58,12 +73,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Transactional
     public void updateLoginTime(String username) {
         User user = new User();
-        user.setLastLoginTime(new Date());
-
+        Date thisDate = new Date();
+        user.setLastLoginTime(thisDate);
         this.baseMapper.update(user, new LambdaQueryWrapper<User>().eq(User::getUsername, username));
 
         // 重新将用户信息加载到 redis中
-        cacheService.saveUser(username);
+        User newUser = this.findByName(username);
+        newUser.setLastLoginTime(thisDate);
+        redisService.set(CslmConstant.USET_DETAIL + username, JSONUtil.toJsonStr(newUser));
     }
 
     @Override
@@ -73,11 +90,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setCreateTime(new Date());
         user.setAvatar(User.DEFAULT_AVATAR);
         user.setPassword(Md5Util.encrypt(user.getUsername(), User.DEFAULT_PASSWORD));
-        save(user);
+        super.save(user);
 
         // 保存用户角色
         String[] roles = user.getRoleId().split(StringPool.COMMA);
-        setUserRoles(user, roles);
+        this.setUserRoles(user, roles);
         //查询用户角色
 
         // 将用户相关信息保存到 Redis中
@@ -90,17 +107,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 更新用户
         user.setPassword(null);
         user.setModifyTime(new Date());
-        updateById(user);
+        super.updateById(user);
 
         userRoleService.getBaseMapper().delete(new LambdaQueryWrapper<UserRole>().eq(UserRole::getUserId, user.getUserId()));
 
         String[] roles = user.getRoleId().split(StringPool.COMMA);
-        setUserRoles(user, roles);
+        this.setUserRoles(user, roles);
 
         // 重新将用户信息，用户角色信息，用户权限信息 加载到 redis中
-        cacheService.saveUser(user.getUsername());
+       /* cacheService.saveUser(user.getUsername());
         cacheService.saveRoles(user.getUsername());
-        cacheService.savePermissions(user.getUsername());
+        cacheService.savePermissions(user.getUsername());*/
     }
 
     @Override
@@ -111,7 +128,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         List<String> list = Arrays.asList(userIds);
 
-        removeByIds(list);
+        this.removeByIds(list);
 
         // 删除用户角色
         this.userRoleService.deleteUserRolesByUserId(userIds);
@@ -122,7 +139,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public void updateProfile(User user) {
         updateById(user);
         // 重新缓存用户信息
-        cacheService.saveUser(user.getUsername());
+        //cacheService.saveUser(user.getUsername());
     }
 
     @Override
@@ -133,7 +150,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         this.baseMapper.update(user, new LambdaQueryWrapper<User>().eq(User::getUsername, username));
         // 重新缓存用户信息
-        cacheService.saveUser(username);
+        //cacheService.saveUser(username);
     }
 
     @Override
@@ -144,7 +161,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         this.baseMapper.update(user, new LambdaQueryWrapper<User>().eq(User::getUsername, username));
         // 重新缓存用户信息
-        cacheService.saveUser(username);
+        //cacheService.saveUser(username);
     }
 
     @Override
@@ -180,7 +197,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
             this.baseMapper.update(user, new LambdaQueryWrapper<User>().eq(User::getUsername, username));
             // 重新将用户信息加载到 redis中
-            cacheService.saveUser(username);
+            //cacheService.saveUser(username);
         }
 
     }
@@ -192,15 +209,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             ur.setRoleId(Long.valueOf(roleId));
             this.userRoleService.getBaseMapper().insert(ur);
         });
-    }
-
-    private void loadUserRedisCache(User user) {
-        // 缓存用户
-        cacheService.saveUser(user);
-        // 缓存用户角色
-        cacheService.saveRoles(user.getUsername());
-        // 缓存用户权限
-        cacheService.savePermissions(user.getUsername());
     }
 
 }

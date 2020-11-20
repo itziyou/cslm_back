@@ -1,12 +1,16 @@
 package com.cpiaoju.cslmback.system.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.cpiaoju.cslmback.common.entity.CslmConstant;
 import com.cpiaoju.cslmback.common.entity.QueryRequest;
+import com.cpiaoju.cslmback.common.service.RedisService;
 import com.cpiaoju.cslmback.system.entity.Role;
 import com.cpiaoju.cslmback.system.entity.RoleMenu;
 import com.cpiaoju.cslmback.system.mapper.RoleMapper;
@@ -14,8 +18,8 @@ import com.cpiaoju.cslmback.system.mapper.RoleMenuMapper;
 import com.cpiaoju.cslmback.system.service.RoleMenuServie;
 import com.cpiaoju.cslmback.system.service.RoleService;
 import com.cpiaoju.cslmback.system.service.UserRoleService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,18 +27,22 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+/**
+ * @author ziyou
+ */
 @Slf4j
-@Service("roleService")
+@Service
+@RequiredArgsConstructor
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true, rollbackFor = Exception.class)
 public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements RoleService {
 
-    @Autowired
-    private RoleMenuMapper roleMenuMapper;
-    @Autowired
-    private UserRoleService userRoleService;
-    @Autowired
-    private RoleMenuServie roleMenuService;
+    private final RoleMenuMapper roleMenuMapper;
+    private final UserRoleService userRoleService;
+    private final RoleMenuServie roleMenuService;
+    private final RedisService redisService;
 
 
     @Override
@@ -60,8 +68,22 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     }
 
     @Override
-    public List<Role> findUserRole(String userName) {
-        return baseMapper.findUserRole(userName);
+    public Set<String> findUserRole(String userName) {
+        Object roleRedis = redisService.get(CslmConstant.USET_ROLE + userName);
+        if (roleRedis == null) {
+            List<Role> roleList = baseMapper.findUserRole(userName);
+            if (roleList == null || roleList.size() == 0) {
+                return null;
+            }
+            Set<String> roleSet = roleList.stream().map(Role::getRoleName).collect(Collectors.toSet());
+            redisService.set(CslmConstant.USET_ROLE + userName, JSONUtil.toJsonStr(roleList));
+            return roleSet;
+        } else {
+            JSONArray roleJSONArray = JSONUtil.parseArray(roleRedis);
+            List<Role> roleList = JSONUtil.toList(roleJSONArray, Role.class);
+            Set<String> roleSet = roleList.stream().map(Role::getRoleName).collect(Collectors.toSet());
+            return roleSet;
+        }
     }
 
     @Override

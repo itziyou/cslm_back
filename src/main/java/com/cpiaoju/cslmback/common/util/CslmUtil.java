@@ -3,7 +3,6 @@ package com.cpiaoju.cslmback.common.util;
 
 import com.cpiaoju.cslmback.common.authentication.jwt.JWTUtil;
 import com.cpiaoju.cslmback.common.function.CacheSelector;
-import com.cpiaoju.cslmback.common.service.CacheService;
 import com.cpiaoju.cslmback.system.entity.User;
 import com.cpiaoju.cslmback.system.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -55,9 +54,8 @@ public class CslmUtil {
         String token = (String) SecurityUtils.getSubject().getPrincipal();
         String username = JWTUtil.getUsername(token);
         UserService userService = SpringContextUtil.getBean(UserService.class);
-        CacheService cacheService = SpringContextUtil.getBean(CacheService.class);
 
-        return selectCacheByTemplate(() -> cacheService.getUser(username), () -> userService.findByName(username));
+        return userService.findByName(username);
     }
 
     /**

@@ -1,16 +1,19 @@
 package com.cpiaoju.cslmback.system.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.cpiaoju.cslmback.common.entity.router.VueRouter;
 import com.cpiaoju.cslmback.system.entity.Menu;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface MenuService extends IService<Menu> {
 
-    List<Menu> findUserPermissions(String username);
+    Set<String> findUserPermissions(String username);
 
-    List<Menu> findUserMenus(String username);
+    ArrayList<VueRouter<Menu>> findUserMenus(String username);
 
     Map<String, Object> findMenus(Menu menu);
 
