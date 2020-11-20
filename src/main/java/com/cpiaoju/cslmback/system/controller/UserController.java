@@ -36,7 +36,6 @@ public class UserController extends BaseController {
 
     @GetMapping("/{username}")
     public User detail(@NotBlank(message = "{required}") @PathVariable String username) {
-        //UserServiceImpl中findByName方法改为调用baseMapper.findDetail(username)
         return this.userService.findByName(username);
     }
 

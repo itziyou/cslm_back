@@ -3,6 +3,8 @@ package com.cpiaoju.cslmback.common.authentication;
 import cn.hutool.core.util.StrUtil;
 import com.cpiaoju.cslmback.common.authentication.jwt.JWTToken;
 import com.cpiaoju.cslmback.common.authentication.jwt.JWTUtil;
+import com.cpiaoju.cslmback.common.entity.CslmConstant;
+import com.cpiaoju.cslmback.common.service.RedisService;
 import com.cpiaoju.cslmback.system.entity.Menu;
 import com.cpiaoju.cslmback.system.entity.Role;
 import com.cpiaoju.cslmback.system.entity.User;
@@ -34,6 +36,7 @@ public class ShiroRealm extends AuthorizingRealm {
     private UserService userService;
     private RoleService roleService;
     private MenuService menuService;
+    private RedisService redisService;
 
     @Lazy
     @Autowired
@@ -53,6 +56,12 @@ public class ShiroRealm extends AuthorizingRealm {
         this.roleService = roleService;
     }
 
+    @Lazy
+    @Autowired
+    public void setRedisService(RedisService redisService) {
+        this.redisService = redisService;
+    }
+
     @Override
     public boolean supports(AuthenticationToken token) {
         return token instanceof JWTToken;
@@ -67,7 +76,6 @@ public class ShiroRealm extends AuthorizingRealm {
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principal) {
         String userName = JWTUtil.getUsername(principal.toString());
-
 
         SimpleAuthorizationInfo simpleAuthorizationInfo = new SimpleAuthorizationInfo();
 
@@ -101,10 +109,14 @@ public class ShiroRealm extends AuthorizingRealm {
         }
         // 通过用户名到数据库查询用户信息
         User user = this.userService.findByName(username);
-
         if (user == null) {
             throw new IncorrectCredentialsException("用户名或密码错误！");
         }
+        Object redisToken = redisService.get(CslmConstant.TOKEN_CACHE_PREFIX + user.getUserId());
+        if (redisToken == null) {
+            throw new AuthenticationException("token已经过期");
+        }
+
         if (!JWTUtil.verify(token, username, user.getPassword())) {
             throw new AuthenticationException("token校验不通过");
         }
