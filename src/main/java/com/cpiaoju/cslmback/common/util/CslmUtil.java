@@ -14,7 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * FEBS工具类
+ * Cslm工具类
  *
  * @author ziyou
  */
@@ -59,6 +59,7 @@ public class CslmUtil {
 
         return selectCacheByTemplate(() -> cacheService.getUser(username), () -> userService.findByName(username));
     }
+
     /**
      * 正则校验
      *

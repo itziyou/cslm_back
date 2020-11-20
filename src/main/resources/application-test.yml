@@ -37,4 +37,4 @@ spring:
 
 logging:
   level:
-    cc.mrbird.febs.common.handler: debug
+    com.cpiaoju.cslmback.common.handler: debug

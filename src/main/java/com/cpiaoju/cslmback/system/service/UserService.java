@@ -5,9 +5,10 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.cpiaoju.cslmback.common.entity.QueryRequest;
 import com.cpiaoju.cslmback.system.entity.User;
 
-import java.util.List;
 
-
+/**
+ * @author ziyou
+ */
 public interface UserService extends IService<User> {
 
     /**
@@ -39,28 +40,28 @@ public interface UserService extends IService<User> {
      *
      * @param user user
      */
-    void createUser(User user) throws Exception;
+    void createUser(User user);
 
     /**
      * 修改用户
      *
      * @param user user
      */
-    void updateUser(User user) throws Exception;
+    void updateUser(User user);
 
     /**
      * 删除用户
      *
      * @param userIds 用户 id数组
      */
-    void deleteUsers(String[] userIds) throws Exception;
+    void deleteUsers(String[] userIds);
 
     /**
      * 更新个人信息
      *
      * @param user 个人信息
      */
-    void updateProfile(User user) throws Exception;
+    void updateProfile(User user);
 
     /**
      * 更新用户头像
@@ -68,7 +69,7 @@ public interface UserService extends IService<User> {
      * @param username 用户名
      * @param avatar   用户头像
      */
-    void updateAvatar(String username, String avatar) throws Exception;
+    void updateAvatar(String username, String avatar);
 
     /**
      * 更新用户密码
@@ -76,7 +77,7 @@ public interface UserService extends IService<User> {
      * @param username 用户名
      * @param password 新密码
      */
-    void updatePassword(String username, String password) throws Exception;
+    void updatePassword(String username, String password);
 
     /**
      * 注册用户
@@ -84,13 +85,13 @@ public interface UserService extends IService<User> {
      * @param username 用户名
      * @param password 密码
      */
-    void regist(String username, String password) throws Exception;
+    void regist(String username, String password);
 
     /**
      * 重置密码
      *
      * @param usernames 用户集合
      */
-    void resetPassword(String[] usernames) throws Exception;
+    void resetPassword(String[] usernames);
 
 }

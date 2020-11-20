@@ -10,13 +10,11 @@ import com.cpiaoju.cslmback.common.service.CacheService;
 import com.cpiaoju.cslmback.common.util.Md5Util;
 import com.cpiaoju.cslmback.system.entity.User;
 import com.cpiaoju.cslmback.system.entity.UserRole;
-import com.cpiaoju.cslmback.system.manager.UserManager;
 import com.cpiaoju.cslmback.system.mapper.UserMapper;
-import com.cpiaoju.cslmback.system.mapper.UserRoleMapper;
 import com.cpiaoju.cslmback.system.service.UserRoleService;
 import com.cpiaoju.cslmback.system.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,19 +23,17 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * @author ziyou
+ */
 @Slf4j
-@Service("userService")
+@Service
+@RequiredArgsConstructor
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true, rollbackFor = Exception.class)
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
-    @Autowired
-    private UserRoleMapper userRoleMapper;
-    @Autowired
-    private CacheService cacheService;
-    @Autowired
-    private UserRoleService userRoleService;
-    /*@Autowired
-    private UserManager userManager;*/
+    private final CacheService cacheService;
+    private final UserRoleService userRoleService;
 
 
     @Override
@@ -72,7 +68,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional
-    public void createUser(User user) throws Exception {
+    public void createUser(User user) {
         // 创建用户
         user.setCreateTime(new Date());
         user.setAvatar(User.DEFAULT_AVATAR);
@@ -85,18 +81,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         //查询用户角色
 
         // 将用户相关信息保存到 Redis中
-        //userManager.loadUserRedisCache(user);
+
     }
 
     @Override
     @Transactional
-    public void updateUser(User user) throws Exception {
+    public void updateUser(User user) {
         // 更新用户
         user.setPassword(null);
         user.setModifyTime(new Date());
         updateById(user);
 
-        userRoleMapper.delete(new LambdaQueryWrapper<UserRole>().eq(UserRole::getUserId, user.getUserId()));
+        userRoleService.getBaseMapper().delete(new LambdaQueryWrapper<UserRole>().eq(UserRole::getUserId, user.getUserId()));
 
         String[] roles = user.getRoleId().split(StringPool.COMMA);
         setUserRoles(user, roles);
@@ -109,7 +105,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional
-    public void deleteUsers(String[] userIds) throws Exception {
+    public void deleteUsers(String[] userIds) {
         // 先删除相应的缓存
         //this.userManager.deleteUserRedisCache(userIds);
 
@@ -123,7 +119,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional
-    public void updateProfile(User user) throws Exception {
+    public void updateProfile(User user) {
         updateById(user);
         // 重新缓存用户信息
         cacheService.saveUser(user.getUsername());
@@ -131,7 +127,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional
-    public void updateAvatar(String username, String avatar) throws Exception {
+    public void updateAvatar(String username, String avatar) {
         User user = new User();
         user.setAvatar(avatar);
 
@@ -142,7 +138,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional
-    public void updatePassword(String username, String password) throws Exception {
+    public void updatePassword(String username, String password) {
         User user = new User();
         user.setPassword(Md5Util.encrypt(username, password));
 
@@ -153,7 +149,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional
-    public void regist(String username, String password) throws Exception {
+    public void regist(String username, String password) {
         User user = new User();
         user.setPassword(Md5Util.encrypt(username, password));
         user.setUsername(username);
@@ -167,7 +163,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         UserRole ur = new UserRole();
         ur.setUserId(user.getUserId());
         ur.setRoleId(2L); // 注册用户角色 ID
-        this.userRoleMapper.insert(ur);
+        this.userRoleService.getBaseMapper().insert(ur);
 
         //获取用户部门员工
         // 将用户相关信息保存到 Redis中
@@ -176,7 +172,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional
-    public void resetPassword(String[] usernames) throws Exception {
+    public void resetPassword(String[] usernames) {
         for (String username : usernames) {
 
             User user = new User();
@@ -194,8 +190,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             UserRole ur = new UserRole();
             ur.setUserId(user.getUserId());
             ur.setRoleId(Long.valueOf(roleId));
-            this.userRoleMapper.insert(ur);
+            this.userRoleService.getBaseMapper().insert(ur);
         });
+    }
+
+    private void loadUserRedisCache(User user) {
+        // 缓存用户
+        cacheService.saveUser(user);
+        // 缓存用户角色
+        cacheService.saveRoles(user.getUsername());
+        // 缓存用户权限
+        cacheService.savePermissions(user.getUsername());
     }
 
 }

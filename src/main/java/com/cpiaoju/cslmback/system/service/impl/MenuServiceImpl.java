@@ -19,13 +19,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
+/**
+ * @author ziyou
+ */
 @Slf4j
-@Service("menuService")
+@Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true, rollbackFor = Exception.class)
 public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements MenuService {
 
-    /*@Autowired
-    private UserManager userManager;*/
 
     @Override
     public List<Menu> findUserPermissions(String username) {

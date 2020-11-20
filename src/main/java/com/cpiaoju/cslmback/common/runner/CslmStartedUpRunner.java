@@ -4,7 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.cpiaoju.cslmback.common.entity.CslmConstant;
-import com.cpiaoju.cslmback.common.properties.FebsProperties;
+import com.cpiaoju.cslmback.common.properties.CslmProperties;
 import com.cpiaoju.cslmback.common.properties.ShiroProperties;
 import com.cpiaoju.cslmback.common.service.RedisService;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ public class CslmStartedUpRunner implements ApplicationRunner {
     public static final String FULL_TIME_SPLIT_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
     private final ConfigurableApplicationContext context;
-    private final FebsProperties febsProperties;
+    private final CslmProperties cslmProperties;
     private final ShiroProperties shiroProperties;
     private final RedisService redisService;
 

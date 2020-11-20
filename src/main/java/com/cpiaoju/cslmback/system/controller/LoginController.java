@@ -1,36 +1,35 @@
 package com.cpiaoju.cslmback.system.controller;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.cpiaoju.cslmback.common.annotation.Limit;
 import com.cpiaoju.cslmback.common.authentication.jwt.JWTToken;
 import com.cpiaoju.cslmback.common.authentication.jwt.JWTUtil;
 import com.cpiaoju.cslmback.common.entity.CslmConstant;
 import com.cpiaoju.cslmback.common.entity.CslmResponse;
 import com.cpiaoju.cslmback.common.exception.CslmException;
-import com.cpiaoju.cslmback.common.properties.FebsProperties;
 import com.cpiaoju.cslmback.common.properties.ShiroProperties;
 import com.cpiaoju.cslmback.common.service.RedisService;
-import com.cpiaoju.cslmback.common.util.CslmUtil;
-import com.cpiaoju.cslmback.common.util.IpUtil;
 import com.cpiaoju.cslmback.common.util.Md5Util;
 import com.cpiaoju.cslmback.system.entity.User;
 import com.cpiaoju.cslmback.system.manager.UserManager;
 import com.cpiaoju.cslmback.system.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 
 @Slf4j
@@ -45,8 +44,6 @@ public class LoginController {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private FebsProperties properties;
     @Autowired
     private ShiroProperties shiroProperties;
     @Autowired
@@ -77,15 +74,14 @@ public class LoginController {
         // 更新用户登录时间
         this.userService.updateLoginTime(username);
 
-
         String token = JWTUtil.sign(username, password);
         LocalDateTime expireTime = LocalDateTime.now().plusSeconds(shiroProperties.getJwtTimeOut());
 
         String expireTimeStr = DateUtil.format(expireTime, "yyyyMMddHHmmss");
         JWTToken jwtToken = new JWTToken(token, expireTimeStr);
 
-        String userId = this.saveTokenToRedis(jwtToken, request);
-        user.setId(userId);
+        // redis 中存储这个 token，key = 前缀 + userId
+        this.redisService.set(CslmConstant.TOKEN_CACHE_PREFIX + user.getUserId(), token, shiroProperties.getJwtTimeOut());
 
         Map<String, Object> userInfo = this.generateUserInfo(jwtToken, user);
         return new CslmResponse().code(HttpStatus.OK).message("认证成功").data(userInfo);
@@ -134,34 +130,31 @@ public class LoginController {
         }
     }*/
 
-   /* @GetMapping("logout/{id}")
-    public CslmResponse logout(@NotBlank(message = "{required}") @PathVariable String id) throws Exception {
+    @GetMapping("logout/{userId}")
+    public CslmResponse logout(@NotBlank(message = "{required}") @PathVariable Long userId) throws Exception {
         try {
-            this.kickout(id);
+            redisService.del(CslmConstant.TOKEN_CACHE_PREFIX + userId);
             return new CslmResponse().message("退出系统成功").code(HttpStatus.OK);
         } catch (Exception e) {
-
             String message = "退出系统失败";
             log.error(message, e);
             throw new Exception(message);
         }
 
-    }*/
+    }
 
     @PostMapping("regist")
     public void regist(
             @NotBlank(message = "{required}") String username,
-            @NotBlank(message = "{required}") String password) throws Exception {
+            @NotBlank(message = "{required}") String password) {
         this.userService.regist(username, password);
     }
 
-    private String saveTokenToRedis(JWTToken token, HttpServletRequest request) {
-        String ip = IpUtil.getIpAddr(request);
+    private void saveTokenToRedis(Long userId, JWTToken token, HttpServletRequest request) {
 
-        // redis 中存储这个加密 token，key = 前缀 + 加密 token + .ip
-        this.redisService.set(CslmConstant.TOKEN_CACHE_PREFIX + token.getToken() + StringPool.DOT + ip, token.getToken(), shiroProperties.getJwtTimeOut() * 1000);
+        // redis 中存储这个 token，key = 前缀 + userId
+        this.redisService.set(CslmConstant.TOKEN_CACHE_PREFIX + userId, token.getToken(), shiroProperties.getJwtTimeOut());
 
-        return RandomUtil.randomString(20);
     }
 
     /**

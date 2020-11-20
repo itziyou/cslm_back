@@ -17,7 +17,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 @Configuration
 @RequiredArgsConstructor
-public class FebsConfigure {
+public class CslmConfigure {
 
 
     @Bean(CslmConstant.ASYNC_POOL)

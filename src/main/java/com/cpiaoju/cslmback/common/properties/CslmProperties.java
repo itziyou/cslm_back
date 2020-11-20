@@ -10,7 +10,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @SpringBootConfiguration
 @ConfigurationProperties(prefix = "cslm")
-public class FebsProperties {
+public class CslmProperties {
 
     private boolean autoOpenBrowser = false;
 

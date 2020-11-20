@@ -1,7 +1,7 @@
 package com.cpiaoju.cslmback.common.exception;
 
 /**
- * FEBS系统内部异常
+ * 城商联盟系统内部异常
  *
  * @author ziyou
  */

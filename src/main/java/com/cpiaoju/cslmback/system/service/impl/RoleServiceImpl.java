@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cpiaoju.cslmback.common.entity.QueryRequest;
 import com.cpiaoju.cslmback.system.entity.Role;
 import com.cpiaoju.cslmback.system.entity.RoleMenu;
-import com.cpiaoju.cslmback.system.manager.UserManager;
 import com.cpiaoju.cslmback.system.mapper.RoleMapper;
 import com.cpiaoju.cslmback.system.mapper.RoleMenuMapper;
 import com.cpiaoju.cslmback.system.service.RoleMenuServie;
@@ -36,8 +35,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     private UserRoleService userRoleService;
     @Autowired
     private RoleMenuServie roleMenuService;
-    /*@Autowired
-    private UserManager userManager;*/
+
 
     @Override
     public IPage<Role> findRoles(Role role, QueryRequest request) {

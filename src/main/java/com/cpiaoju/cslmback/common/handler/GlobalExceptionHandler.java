@@ -41,7 +41,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(value = CslmException.class)
-    public CslmResponse handleFebsException(CslmException e) {
+    public CslmResponse handleCslmException(CslmException e) {
         log.debug("系统错误", e);
         return new CslmResponse().code(HttpStatus.INTERNAL_SERVER_ERROR).message(e.getMessage());
     }
