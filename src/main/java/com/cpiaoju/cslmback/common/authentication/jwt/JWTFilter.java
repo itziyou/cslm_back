@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 
 /**
  * @author ziyou
@@ -35,7 +36,7 @@ public class JWTFilter extends BasicHttpAuthenticationFilter {
     protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) throws UnauthorizedException {
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         ShiroProperties properties = SpringContextUtil.getBean(ShiroProperties.class);
-        String[] anonUrl = StrUtil.split(properties.getAnonUrl(), ",");
+        List<String> anonUrl = properties.getAnonUrl();
 
         boolean match = false;
         for (String u : anonUrl) {

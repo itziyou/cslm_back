@@ -97,7 +97,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
         this.save(role);
 
         String[] menuIds = role.getMenuId().split(StringPool.COMMA);
-        setRoleMenus(role, menuIds);
+        this.setRoleMenus(role, menuIds);
     }
 
     @Override

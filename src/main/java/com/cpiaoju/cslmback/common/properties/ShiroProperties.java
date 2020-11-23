@@ -4,6 +4,8 @@ import lombok.Data;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.List;
+
 /**
  * @author ziyou
  */
@@ -12,7 +14,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "cslm.shiro")
 public class ShiroProperties {
 
-    private String anonUrl;
+    private List<String> anonUrl;
 
     /**
      * token默认有效时间
