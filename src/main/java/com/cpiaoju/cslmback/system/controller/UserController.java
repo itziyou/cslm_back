@@ -3,6 +3,7 @@ package com.cpiaoju.cslmback.system.controller;
 import com.cpiaoju.cslmback.common.controller.BaseController;
 import com.cpiaoju.cslmback.system.entity.User;
 import com.cpiaoju.cslmback.system.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -20,14 +21,10 @@ import javax.validation.constraints.NotBlank;
 @Validated
 @RestController
 @RequestMapping("user")
+@RequiredArgsConstructor
 public class UserController extends BaseController {
 
-    private String message;
-
-    @Autowired
-    private UserService userService;
-//    @Autowired
-//    private RoleService roleService;
+    private final UserService userService;
 
     @GetMapping("check/{username}")
     public boolean checkUserName(@NotBlank(message = "{required}") @PathVariable String username) {

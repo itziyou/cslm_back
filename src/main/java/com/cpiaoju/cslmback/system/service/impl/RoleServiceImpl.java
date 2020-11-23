@@ -101,7 +101,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     }
 
     @Override
-    public void deleteRoles(String[] roleIds) throws Exception {
+    public void deleteRoles(String[] roleIds) {
         // 查找这些角色关联了那些用户
         List<String> userIds = this.userRoleService.findUserIdsByRoleId(roleIds);
 
@@ -118,7 +118,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     }
 
     @Override
-    public void updateRole(Role role) throws Exception {
+    public void updateRole(Role role) {
         // 查找这些角色关联了那些用户
         String[] roleId = {String.valueOf(role.getRoleId())};
         List<String> userIds = this.userRoleService.findUserIdsByRoleId(roleId);

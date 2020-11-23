@@ -121,7 +121,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
 
     @Override
     @Transactional
-    public void updateMenu(Menu menu) throws Exception {
+    public void updateMenu(Menu menu) {
         menu.setModifyTime(new Date());
         setMenu(menu);
         baseMapper.updateById(menu);
@@ -134,7 +134,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
 
     @Override
     @Transactional
-    public void deleteMeuns(String[] menuIds) throws Exception {
+    public void deleteMeuns(String[] menuIds) {
         this.delete(Arrays.asList(menuIds));
         for (String menuId : menuIds) {
             // 查找与这些菜单/按钮关联的用户
