@@ -12,6 +12,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2WebMvc;
 
 /**
  * @author ziyou
+ * <p>文档地址：https://xiaoym.gitee.io/knife4j/documentation/enhance.html</p>
  */
 @Configuration
 @EnableSwagger2WebMvc

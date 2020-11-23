@@ -35,4 +35,9 @@ spring:
     # 连接超时时间（毫秒）
     timeout: 5000
 
+knife4j:
+  # 开启增强配置
+  enable: true
+  # 开启生产环境屏蔽
+  production: true
 

@@ -40,4 +40,7 @@ logging:
     com.cpiaoju.cslmback.common.handler: debug
 
 knife4j:
-  production: false
+  # 开启增强配置
+  enable: true
+  # 开启生产环境屏蔽
+  production: true
