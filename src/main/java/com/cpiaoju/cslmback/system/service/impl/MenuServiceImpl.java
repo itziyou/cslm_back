@@ -115,7 +115,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
     @Transactional
     public void createMenu(Menu menu) {
         menu.setCreateTime(new Date());
-        setMenu(menu);
+        this.setMenu(menu);
         this.save(menu);
     }
 
@@ -123,7 +123,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
     @Transactional
     public void updateMenu(Menu menu) {
         menu.setModifyTime(new Date());
-        setMenu(menu);
+        this.setMenu(menu);
         baseMapper.updateById(menu);
 
         // 查找与这些菜单/按钮关联的用户
