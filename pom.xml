@@ -27,6 +27,7 @@
         <hutool.version>5.5.1</hutool.version>
         <jwt.version>3.4.1</jwt.version>
         <google.guava.version>27.0-jre</google.guava.version>
+        <knife4j.version>2.0.7</knife4j.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <package-time>${maven.build.timestamp}</package-time>
@@ -150,7 +151,7 @@
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
             <artifactId>knife4j-spring-boot-starter</artifactId>
-            <version>2.0.7</version>
+            <version>${knife4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
